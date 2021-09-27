@@ -1,8 +1,7 @@
 {
   "profiles": {
     "CsvToApiDataType": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\sakuraba_yusuke\\Desktop\\CSVImport.csv"
+      "commandName": "Project"
     }
   }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -11,9 +10,21 @@ namespace CsvToApiDataType
 {
 	class Program
 	{
+		private static readonly string TARGET = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CSVImport.csv");
+
 		static void Main(string[] args)
 		{
-			if(args.Length == 0) return;
+			var files = args.ToList();
+			if (args.Length == 0 && File.Exists(TARGET))			{
+				files.Add(TARGET);
+			}
+
+			if (files.Count == 0)
+			{
+				Console.WriteLine("[エラー] ファイルの指定がありません。EXE ファイルに CSV ファイルをドロップするか、デスクトップ上に CSVImport.csv を用意してください。");
+				Console.ReadLine();
+				return;
+			}
 
 			var config = new CsvConfiguration(CultureInfo.InvariantCulture)
 			{
@@ -21,47 +32,36 @@ namespace CsvToApiDataType
 			};
 
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-			var list = new List<Data>();
-			foreach (var file in args)
+			foreach (var file in files)
 			{
 				using var reader = new StreamReader(file, Encoding.GetEncoding("SHIFT_JIS"));
 				using var csv = new CsvReader(reader, config);
-				list = csv.GetRecords<Data>().ToList();
+				var list = csv.GetRecords<Data>().ToList();
 
-				var desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+				var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 				var path = Path.Combine(desktop, $"{Path.GetFileNameWithoutExtension(file)}.yaml");
 				using var fs = File.Create(path);
 				fs.Close();
 				using var sw = new StreamWriter(path, false, Encoding.UTF8);
 
-				sw.WriteLine($"{GetSpace(4)}{Path.GetFileNameWithoutExtension(file)}:");
-				sw.WriteLine($"{GetSpace(6)}description:");
-				sw.WriteLine($"{GetSpace(6)}required:");
+				sw.WriteLine($"{new string(' ', 4)}{Path.GetFileNameWithoutExtension(file)}:");
+				sw.WriteLine($"{new string(' ', 6)}description:");
+				sw.WriteLine($"{new string(' ', 6)}required:");
 				foreach (var entity in list)
 				{
-					if (entity.Converted必須) sw.WriteLine($"{GetSpace(6)}- {entity.物理名PascalCase}");
+					if (entity.Converted必須) sw.WriteLine($"{new string(' ', 6)}- {entity.物理名PascalCase}");
 				}
-				sw.WriteLine($"{GetSpace(6)}type: object");
-				sw.WriteLine($"{GetSpace(6)}properties:");
-				
+				sw.WriteLine($"{new string(' ', 6)}type: object");
+				sw.WriteLine($"{new string(' ', 6)}properties:");
+
 				foreach (var entity in list)
 				{
-					sw.WriteLine($"{GetSpace(8)}{entity.物理名PascalCase}:");
-					sw.WriteLine($"{GetSpace(10)}description: {entity.論理名}");
-					sw.WriteLine($"{GetSpace(10)}type: {entity.Converted型}");
+					sw.WriteLine($"{new string(' ', 8)}{entity.物理名PascalCase}:");
+					sw.WriteLine($"{new string(' ', 10)}description: {entity.論理名}");
+					sw.WriteLine($"{new string(' ', 10)}type: {entity.Converted型}");
 				}
 			}
-		}
 
-		public static string GetSpace(int num)
-		{
-			var ret = string.Empty;
-			for (var i = 0; i < num; i++)
-			{
-				ret += " ";
-			}
-
-			return ret;
 		}
 	}
 }
